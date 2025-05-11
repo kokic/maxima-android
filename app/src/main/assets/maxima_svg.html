@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Maxima on Android</title>
+	<!-- Copyright (c) 2012 Design Science, Inc. -->
+	<!-- Copyright (c) 2011-2012 Design Science, Inc. -->
+	<!-- Copyright 2012, 2013, 2014, 2015, 2016, 2017 Yasuaki Honda -->
+	<!-- Copyright 2025 Kokic (@kokic) -->
+	<!-- This file is distributed under Apache License, Version 2.0. -->
+	<!-- Original version of this file was in mathjax source distribution
+    under test directory. The name of the file is sample-dynamic-2.html -->
+
+	<!-- <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+	<link rel="stylesheet" href="katex/katex.min.css">
+	<link rel="stylesheet" href="katex/copy-tex.css">
+
+	<script src="katex/katex.min.js"></script>
+	<script src="katex/copy-tex.min.js"></script>
+	<script>
+
+		const macros = {
+			"\\mbox": "",
+		};
+
+		const config = {
+			throwOnError: true,
+			displayMode: true,
+			macros,
+		};
+
+		const compatibleKaTeX = function (str) {
+			let count = 0;
+			/** \begin{pmatrix} a & b \\ c & d \end{pmatrix} **/
+			let pos_pmatrix = str.indexOf("pmatrix");
+			if (pos_pmatrix > 0) {
+				for (let i = pos_pmatrix + 7; i < str.length; i++) {
+					let char = str[i];
+					count += char == '{' ? 1 : (char == '}' ? -1 : 0);
+					if (count == 0) {
+						str = str.substr(0, i) + "\\\\end{pmatrix}" + str.substr(i + 1);
+						break;
+					}
+				}
+				str = str.replace("\pmatrix{", "\\begin{pmatrix}");
+			}
+			return str.replace(/\\\\/g, "\\");
+		};
+
+		const escapeDollar = function (text) {
+			var i = text.indexOf('$');
+			if (i == -1) {
+				// $は見つからなかった
+				// translate: `$` could not be found
+				return text;
+			} else if (i == 0) {
+				// 先頭が$だった
+				// translate: `$` is at the beginning
+				return '\\' + '$' + escapeDollar(text.substring(1));
+			} else {
+				// $は２文字目以降だった
+				// $の直前が\出ない場合、$の直前までの文字列と'\\'+'$'とescDoller (残り)
+				// $の直前が\の場合、$の直前までの文字列と'$'とescDoller (残り)
+				// translate: `$` is at the second character or later
+				// translate: If the character before `$` is not `\`, return the string up to `$` + '\\' + '$' + escapeDoller(remaining)
+				// translate: If the character before `$` is `\`, return the string up to `$` + '$' + escapeDoller (remaining)
+				var a = text.substring(0, i);
+				var b = '';
+				if (text.substring(i - 1, i) == '\\') {
+					b = '$';
+				} else {
+					b = '\\' + '$';
+				}
+				var c = escapeDollar(text.substring(i + 1));
+				return (a + b + c);
+			}
+		}
+
+		// record all raw TeX source of output
+		const sources = [];
+
+		const getSources = function () {
+			return sources;
+		};
+
+		const updateMath = function (pack) {
+			console.log("UpdateMath " + pack);
+			var RR = pack.match(/ *RO([1-2])/);
+			var text = " $$$$$$ ";
+			var oNumStr = "";
+			if (RR[1] == "1") {
+				RR = pack.match(/ *RO1 \$%([a-zA-Z][0-9]+)(.*)/);
+				// text = text + escDoller(RR[2]) + " $$$$$$ ";
+				text = escapeDollar(RR[2]);
+				oNumStr = RR[1].toLowerCase();
+			} else if (RR[1] == "2") {
+				RR = pack.match(/ *RO2 (.*)/);
+				// text = text + escDoller(RR[1]) + " $$$$$$ ";
+				text = escapeDollar(RR[1]);
+				oNumStr = "nolabel";
+			} else {
+				console.log("Fatal error in UpdateMath.");
+				console.log(pack);
+				return;
+			}
+			var mathlist = document.getElementById("MathList");
+			var divElem = document.createElement("div");
+			divElem.id = "moa1";
+
+			text = compatibleKaTeX(text);
+			appendOutput(text);
+		}
+
+		window.appendOutput = function (rawTeX) {
+			const element = document.createElement("p");
+			document.body.appendChild(element);
+			katex.render(rawTeX, element, config);
+			sources.push(rawTeX);
+		}
+	</script>
+</head>
+
+<body style="height: auto; font-size: 18pt">
+
+</body>
+
+</html>
