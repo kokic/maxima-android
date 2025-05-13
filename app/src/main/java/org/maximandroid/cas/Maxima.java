@@ -48,7 +48,7 @@ public class Maxima {
             maximaProcess.clearStringBuilder();
             return result;
         } catch (Exception e) {
-            Log.e("MoA", "exec failed ...");
+            Log.e("MA", "exec failed ...");
             e.printStackTrace();
         }
         return null;

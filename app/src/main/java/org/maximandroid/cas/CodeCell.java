@@ -129,13 +129,6 @@ public class CodeCell extends LinearLayout {
         buttonContainer.addView(deleteButton);
 
 //        Button debugButton = createActionButton("Debug", 0xF09C33FE);
-//        debugButton.setOnClickListener(new OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//
-//            }
-//        });
-//        buttonContainer.addView(debugButton);
 
         // Input editor
         completeTextView = new MultiAutoCompleteTextView(getContext());

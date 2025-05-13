@@ -51,9 +51,8 @@ public final class MOAInstallerActivity extends Activity {
         // Where to Install
         // maxima, init.lisp : internalDir
         // maxima-5.X.0 : installedDir
-        Intent data = null;
-        Intent origIntent = this.getIntent();
-        String vers = origIntent.getStringExtra("version");
+        final String version = Globals.maximaVersion;
+
         try {
             switch (stage) {
                 case 0: {
@@ -87,8 +86,8 @@ public final class MOAInstallerActivity extends Activity {
                     if (CpuArchitecture.getCpuArchitecture().equals(CpuArchitecture.X86)) {
                         File x86File = new File(internalDir.getAbsolutePath() + "/x86");
                         if (!x86File.exists()) {
-                            x86File.createNewFile();
-                            Toast.makeText(this, "x86: " + x86File.getAbsolutePath(), Toast.LENGTH_LONG).show();
+                            boolean result = x86File.createNewFile();
+                            Log.v("MA", "x86: " + x86File.getAbsolutePath() + ", " + result);
                         }
                     }
 
@@ -102,7 +101,7 @@ public final class MOAInstallerActivity extends Activity {
                     String initlispPath = internalDir.getAbsolutePath()
                             + "/init.lisp";
                     String firstLine = "(setq *maxima-dir* \""
-                            + installedDir.getAbsolutePath() + "/maxima-" + vers
+                            + installedDir.getAbsolutePath() + "/maxima-" + version
                             + "\")\n";
                     copyFileFromAssetsToLocal("init.lisp", initlispPath, firstLine);
                     Log.d("My Test", "Clicked!1.1");
@@ -117,22 +116,23 @@ public final class MOAInstallerActivity extends Activity {
                 case 2: {
                     chmod755(internalDir.getAbsolutePath() + "/" + CpuArchitecture.getMaximaFile());
                     UnzipAsyncTask uzt = new UnzipAsyncTask(this);
-                    uzt.setParams(this.getAssets().open("maxima-" + vers + ".zip"),
+                    uzt.setParams(this.getAssets().open("maxima-" + version + ".zip"),
                             installedDir.getAbsolutePath(), getString(R.string.install_maxima_data),
                             "maxima data installed");
                     uzt.execute(2);
                     break;
                 }
                 case 3: {
-                    data = new Intent();
+                    Intent data = new Intent();
                     data.putExtra("sender", "MOAInstallerActivity");
                     setResult(RESULT_OK, data);
 
                     finish();
                     break;
                 }
-                case 10: {// Error indicated
-                    data = new Intent();
+                case 10: {
+                    // Error indicated
+                    Intent data = new Intent();
                     data.putExtra("sender", "MOAInstallerActivity");
                     setResult(RESULT_CANCELED, data);
 
